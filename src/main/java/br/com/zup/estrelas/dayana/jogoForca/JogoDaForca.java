@@ -23,6 +23,7 @@ public class JogoDaForca {
 		private ArrayList<String> palavras = new ArrayList<String>();
 		private String[] palavraEscolhida;
 		private String[] letrasDigitadas;
+		private String[] palavraHud;
 		private int tentativas = 6;
 
 		public void iniciaJogo() {
@@ -35,26 +36,53 @@ public class JogoDaForca {
 			}
 
 			palavraEscolhida = buscaPalavraAleatoria();
+			palavraHud = new String[palavraEscolhida.length];
 			letrasDigitadas = new String[palavraEscolhida.length + TOTAL_DE_ERROS];
 
 			inicializarParteGrafica();
 
-			letrasDigitadas = new String[palavraEscolhida.length];
+			Scanner teclado = new Scanner(System.in);
+			int posicaoAtualLetrasEncontradas = 0;
 
-			while (tentativas > 0) {
+			try {
 
-				String letraDigitada = recuperaLetraDigitada();
-				if (letraDigitada == null) {
-					return;
+				while (tentativas > -1) {
+
+					String letraDigitada = recuperaLetraDigitada(teclado);
+					if (letraDigitada == null) {
+						return;
+					}
+
+					if (verificaLetraRepetida(letraDigitada)) {
+						System.out.println("Você já digitou a letra: " + letraDigitada + " .Tente novamente");
+						continue;
+
+					} else {
+						letrasDigitadas[posicaoAtualLetrasEncontradas] = letraDigitada;
+						posicaoAtualLetrasEncontradas++;
+
+					}
+
+					if (!verificaLetraDigitada(letraDigitada)) {
+						System.out.println("Letra não encontrada.Tente novamente!");
+						tentativas--;
+					}
+					preencheHud(letraDigitada);
+
+					if (tentativas < 0) {
+						System.out.println("\nNão foi dessa vez. Tente novamente!");
+						break;
+					}
+					if (verificaVitoria()) {
+						System.out.println("\nVocê ganhou!");
+						break;
+					}
+
 				}
-
-				if (!verificaLetraDigitada(letraDigitada)) {
-					System.out.println("Letra não encontrada.Tente novamente!");
-					tentativas--;
-				}
-
+			} finally {
+				teclado.close();
 			}
-			System.out.println("Não foi dessa vez. Tente novamente!");
+
 		}
 
 		private void lerArquivo() throws IOException {
@@ -91,21 +119,20 @@ public class JogoDaForca {
 
 		private void inicializarParteGrafica() {
 
-			System.out.println("Bem vindo ao jogo da Forca.\nDigite uma letra para iniciar...\n");
+			System.out.println("Bem vindo ao jogo da Forca.");
 
-			for (int i = 0; i < palavraEscolhida.length; i++) {
+			for (int i = 0; i < palavraHud.length; i++) {
 
-				System.out.print("_ ");
+				palavraHud[i] = "_";
 
 			}
+			imprimeArray(palavraHud);
 		}
 
-		private String recuperaLetraDigitada() {
-			Scanner teclado = new Scanner(System.in);
+		private String recuperaLetraDigitada(Scanner teclado) {
 
-			String letraDigitada = teclado.next();
-
-			teclado.close();
+			System.out.println("\nDigite uma letra: ");
+			String letraDigitada = teclado.next().toUpperCase();
 
 			if (letraDigitada == null || letraDigitada.trim().length() == 0) {
 				System.out.println("Necessário digitar uma letra");
@@ -126,6 +153,41 @@ public class JogoDaForca {
 			}
 			return false;
 
+		}
+
+		private boolean verificaLetraRepetida(String letraDigitada) {
+			for (int i = 0; i < letraDigitada.length(); i++) {
+				if (letraDigitada.equals(letrasDigitadas[i])) {
+					return true;
+				}
+
+			}
+			return false;
+		}
+
+		private void imprimeArray(String[] array) {
+			for (int i = 0; i < array.length; i++) {
+				System.out.print(array[i] + " ");
+			}
+		}
+
+		private void preencheHud(String letraDigitada) {
+			for (int i = 0; i < palavraEscolhida.length; i++) {
+				if (letraDigitada.equals(palavraEscolhida[i])) {
+					palavraHud[i] = letraDigitada;
+				}
+			}
+			imprimeArray(palavraHud);
+		}
+
+		private boolean verificaVitoria() {
+			for (int i = 0; i < palavraEscolhida.length; i++) {
+
+				if (!palavraEscolhida[i].equals(palavraHud[i])) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 	}
